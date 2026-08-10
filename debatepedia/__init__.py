@@ -6,13 +6,10 @@ from .routes import main, auth, api
 from .services.seed import seed_database
 from config import Config
 
-
 def create_app(config_class=Config):
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(__name__)
 
     app.config.from_object(config_class)
-
-    os.makedirs(app.instance_path, exist_ok=True)
 
     db.init_app(app)
     login_manager.init_app(app)
