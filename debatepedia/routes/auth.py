@@ -23,11 +23,9 @@ def register():
         return jsonify(error='Username must be 3–80 characters.'), 400
     if len(password) < 8:
         return jsonify(error='Password must be at least 8 characters.'), 400
-    if '@' not in email:
-        return jsonify(error='Enter a valid email address.'), 400
     if User.query.filter(or_(User.username.ilike(username), User.email.ilike(email))).first():
         return jsonify(error='That username or email is already registered.'), 409
-    user = User(username=username, email=email, role='user')
+    user = User(username=username, email="blank", role='user')
     user.set_password(password)
     db.session.add(user); db.session.commit()
     login_user(user)
