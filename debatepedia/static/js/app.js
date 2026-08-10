@@ -54,20 +54,46 @@ function kindColor(n){
   return n.relation==='refutation' ? '#7a86f5' : '#e2703a';
 }
 
-/* ---------------- wikilink parsing ---------------- */
-function parseWikilinksHTML(escapedText){
-  return escapedText.replace(/\[\[([^\]]+)\]\]/g, (m, title)=>{
+/* ---------------- markdown + wikilink parsing ---------------- */
+
+function parseWikilinksHTML(html){
+  return html.replace(/\[\[([^\]]+)\]\]/g, (m, title)=>{
     const target = noteByTitle(title);
-    if(target) return `<span class="wikilink" data-nav="${target.id}">${title}</span>`;
-    return `<span class="wikilink missing">${title}</span>`;
+
+    if(target){
+      return `<span class="wikilink" data-nav="${target.id}">${escapeHtml(title)}</span>`;
+    }
+
+    return `<span class="wikilink missing">${escapeHtml(title)}</span>`;
   });
 }
+
 function renderContentHTML(text){
-  const escaped = escapeHtml(text);
-  return escaped.split(/\n\n+/).map(p=>`<p>${parseWikilinksHTML(p.replace(/\n/g,'<br>'))}</p>`).join('');
-}
-function findBacklinks(note){
-  return allApproved().filter(n=> n.id!==note.id && new RegExp('\\[\\['+note.title.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\]\\]','i').test(n.content));
+  if(!text) return '';
+
+  /*
+   * Convert Markdown into HTML.
+   *
+   * marked is loaded in base.html.
+   */
+  const markdownHtml = marked.parse(String(text), {
+    breaks: true,
+    gfm: true
+  });
+
+  /*
+   * Convert [[Note Name]] links into Debatepedia
+   * internal links.
+   */
+  const withWikilinks = parseWikilinksHTML(markdownHtml);
+
+  /*
+   * Sanitize the generated HTML so Markdown cannot
+   * be used to inject arbitrary JavaScript.
+   */
+  return DOMPurify.sanitize(withWikilinks, {
+    ADD_ATTR: ['data-nav']
+  });
 }
 
 /* ---------------- FOL validity checker ---------------- */
@@ -250,12 +276,8 @@ function renderReader(){
   const backlinks = findBacklinks(note);
   const crumb = ancestorPath(note);
   main.innerHTML = `<div class="reader">
- <div class="reader-actions">
-    <button class="btn-edit" id="suggestEditBtn">Suggest an edit</button>
-    ${currentUser && currentUser.isAdmin
-      ? `<button class="btn-delete" id="deleteNoteBtn">Delete note</button>`
-      : ''}
-  </div>
+    <div class="reader-actions"><button class="btn-edit" id="suggestEditBtn">Suggest an edit</button></div>
+    
     <div class="eyebrow">${crumb? escapeHtml(crumb): 'Root'} ${chipHTML(note.kind, note.relation)}</div>
     <h1>${escapeHtml(note.title)}</h1>
     <div class="meta">by ${escapeHtml(note.author)} · ${new Date(note.createdAt).toLocaleDateString()}${note.editedAt? ` · edited ${new Date(note.editedAt).toLocaleDateString()}`:''}</div>
@@ -276,28 +298,6 @@ function renderReader(){
   document.getElementById('suggestEditBtn').addEventListener('click', ()=>{
     submitMode='edit'; editTargetId=note.id; view='community'; render();
   });
-  if (currentUser && currentUser.isAdmin) {
-  document.getElementById('deleteNoteBtn').addEventListener('click', async () => {
-      const confirmed = confirm(
-        `Are you sure you want to permanently delete "${note.title}"?`
-      );
-  
-      if (!confirmed) return;
-  
-      try {
-        await apiJson(`/api/notes/${encodeURIComponent(note.id)}`, {
-          method: 'DELETE'
-        });
-  
-        activeNoteId = note.parentId || null;
-  
-        await loadVault();
-        render();
-      } catch (e) {
-        alert(e.message);
-      }
-    });
-  }
 }
 
 /* ---------------- graph view ---------------- */
