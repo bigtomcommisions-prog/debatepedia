@@ -250,7 +250,12 @@ function renderReader(){
   const backlinks = findBacklinks(note);
   const crumb = ancestorPath(note);
   main.innerHTML = `<div class="reader">
-    <div class="reader-actions"><button class="btn-edit" id="suggestEditBtn">Suggest an edit</button></div>
+    <div class="reader-actions">
+      <button class="btn-edit" id="suggestEditBtn">Suggest an edit</button>
+      ${currentUser && currentUser.isAdmin
+        ? `<button class="btn-delete" id="deleteNoteBtn">Delete note</button>`
+        : ''}
+    </div>
     <div class="eyebrow">${crumb? escapeHtml(crumb): 'Root'} ${chipHTML(note.kind, note.relation)}</div>
     <h1>${escapeHtml(note.title)}</h1>
     <div class="meta">by ${escapeHtml(note.author)} · ${new Date(note.createdAt).toLocaleDateString()}${note.editedAt? ` · edited ${new Date(note.editedAt).toLocaleDateString()}`:''}</div>
