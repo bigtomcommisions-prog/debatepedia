@@ -12,23 +12,31 @@ def user_json(user):
 @auth.get('/me')
 def me():
     return jsonify({'user': user_json(current_user) if current_user.is_authenticated else None})
-
+    
 @auth.post('/register')
 def register():
     data = request.get_json() or {}
-    username = str(data.get('username','')).strip()
-    email = str(data.get('email','')).strip().lower()
-    password = str(data.get('password',''))
+    username = str(data.get('username', '')).strip()
+    email = str(data.get('email', '')).strip().lower() or 'blank'
+    password = str(data.get('password', ''))
+
     if len(username) < 3 or len(username) > 80:
         return jsonify(error='Username must be 3–80 characters.'), 400
+
     if len(password) < 8:
         return jsonify(error='Password must be at least 8 characters.'), 400
+
     if User.query.filter(User.username.ilike(username)).first():
         return jsonify(error='That username is already registered.'), 409
+
     user = User(username=username, email=email, role='user')
     user.set_password(password)
-    db.session.add(user); db.session.commit()
+
+    db.session.add(user)
+    db.session.commit()
+
     login_user(user)
+
     return jsonify(user=user_json(user)), 201
 
 @auth.post('/login')
