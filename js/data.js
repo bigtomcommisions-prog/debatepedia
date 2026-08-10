@@ -1,0 +1,76 @@
+// Seed content and initial demo submissions.
+/* ---------------- seed data ---------------- */
+function seedVault(){
+  const now = Date.now();
+  const notes = [
+    {id:'t-ubi', kind:'topic', parentId:null, title:'Universal Basic Income', status:'approved', author:'curator', createdAt:now, tags:['economics','policy'],
+     content:`A proposal for governments to pay every citizen a regular, unconditional cash sum regardless of income or employment status.\n\nSee the case for adoption in [[UBI Should Be Adopted]], the case against in [[UBI Should Not Be Adopted]], and funding questions under [[Funding Mechanisms]].`},
+    {id:'s-ubi', kind:'summary', parentId:'t-ubi', title:'UBI at a Glance', status:'approved', author:'curator', createdAt:now, tags:['overview'],
+     content:`UBI has been piloted in Finland, Kenya, and Stockton, California, with most trials reporting improved recipient wellbeing and mixed effects on employment. The core disagreement is less about the pilot data and more about whether it scales nationally without unsustainable cost.`},
+    {id:'t-ubi-funding', kind:'topic', parentId:'t-ubi', title:'Funding Mechanisms', status:'approved', author:'curator', createdAt:now, tags:['funding'],
+     content:`How a UBI would actually be paid for. See [[A VAT Increase Can Fund UBI]].`},
+    {id:'v-ubi-for', kind:'view', parentId:'t-ubi', title:'UBI Should Be Adopted', status:'approved', author:'curator', createdAt:now, tags:[],
+     content:`The position that a universal basic income should be introduced nationally, gathering the strongest arguments in its favor.`},
+    {id:'v-ubi-against', kind:'view', parentId:'t-ubi', title:'UBI Should Not Be Adopted', status:'approved', author:'curator', createdAt:now, tags:[],
+     content:`The position that a universal basic income should not be introduced, gathering the strongest arguments against it.`},
+    {id:'a-ubi-1', kind:'argument', parentId:'v-ubi-for', relation:'supporting', title:'UBI reduces poverty directly', status:'approved', author:'jrivera', createdAt:now, tags:['poverty'],
+     content:`Unlike means-tested programs, a UBI reaches everyone without paperwork or stigma, closing gaps where eligible people currently fail to claim benefits.\n\nRelated to [[UBI Should Be Adopted]].`},
+    {id:'a-ubi-1a', kind:'argument', parentId:'a-ubi-1', relation:'supporting', title:"Finland's pilot showed improved wellbeing", status:'approved', author:'jrivera', createdAt:now, tags:['evidence'],
+     content:`Finland's 2017-2018 trial found recipients reported higher life satisfaction and lower stress than a control group receiving standard unemployment benefits, even though employment effects were modest.`},
+    {id:'a-ubi-1r', kind:'argument', parentId:'a-ubi-1', relation:'refutation', title:'Targeted transfers cut poverty more cheaply', status:'approved', author:'dlindqvist', createdAt:now, tags:['cost-effectiveness'],
+     content:`Directing the same budget only to households below the poverty line reduces poverty further per dollar spent than spreading it evenly across everyone, including people who don't need it.`},
+    {id:'a-ubi-2', kind:'argument', parentId:'v-ubi-for', relation:'supporting', title:'UBI simplifies the welfare state', status:'approved', author:'m.okafor', createdAt:now, tags:['bureaucracy'],
+     content:`Replacing overlapping benefit programs with one universal payment cuts administrative overhead and removes the "welfare cliff" where earning more causes total income to fall.\n\nRelated to [[UBI Should Be Adopted]].`,
+     premises:['Replaces(UBI, MeansTested) → Reduces(UBI, Bureaucracy)', 'Replaces(UBI, MeansTested)'],
+     conclusion:'Reduces(UBI, Bureaucracy)'},
+    {id:'a-ubi-3', kind:'argument', parentId:'v-ubi-against', relation:'supporting', title:'UBI is fiscally unsustainable', status:'approved', author:'dlindqvist', createdAt:now, tags:['fiscal-policy'],
+     content:`Paying every adult a livable stipend requires enormous tax revenue. Estimates for a $1,000/month US UBI approach $3 trillion annually, larger than the entire current federal discretionary budget.\n\nRelated to [[UBI Should Not Be Adopted]].`,
+     premises:['Affordable(UBI) → Sustainable(Budget)', 'Sustainable(Budget)'],
+     conclusion:'Affordable(UBI)'},
+    {id:'a-ubi-4', kind:'argument', parentId:'v-ubi-against', relation:'supporting', title:'UBI may reduce work incentives', status:'approved', author:'dlindqvist', createdAt:now, tags:['labor-market'],
+     content:`Guaranteeing income independent of work could shrink labor force participation at the margins, particularly for second earners and low-wage roles.\n\nSee [[UBI Should Not Be Adopted]].`},
+    {id:'v-funding', kind:'view', parentId:'t-ubi-funding', title:'A VAT Increase Can Fund UBI', status:'approved', author:'curator', createdAt:now, tags:[],
+     content:`The position that raising value-added tax is the most workable way to pay for a national UBI.`},
+    {id:'a-funding-1', kind:'argument', parentId:'v-funding', relation:'supporting', title:'VAT is broad-based and hard to avoid', status:'approved', author:'s.tanaka', createdAt:now, tags:['tax-policy'],
+     content:`Because VAT is collected at every stage of consumption, it is far harder to evade than income tax and captures spending from cash-heavy and informal sectors.`,
+     premises:['∀x (Consumer(x) → Pays(x, VAT))'],
+     conclusion:'Consumer(Alex) → Pays(Alex, VAT)'},
+    {id:'a-funding-1r', kind:'argument', parentId:'a-funding-1', relation:'refutation', title:'VAT is regressive and burdens low earners more', status:'approved', author:'p.osei', createdAt:now, tags:['equity'],
+     content:`Because lower-income households spend a larger share of their earnings, a flat VAT increase takes a bigger relative bite out of their income than a wealthy household's, even after the UBI payment itself.`},
+
+    {id:'t-nuclear', kind:'topic', parentId:null, title:'Nuclear Energy Expansion', status:'approved', author:'curator', createdAt:now, tags:['energy','climate'],
+     content:`Whether nations should build more nuclear reactors to meet climate and energy-security goals. See [[More Reactors Should Be Built]] and [[Reactor Expansion Should Be Paused]].`},
+    {id:'v-nuclear-for', kind:'view', parentId:'t-nuclear', title:'More Reactors Should Be Built', status:'approved', author:'curator', createdAt:now, tags:[],
+     content:`The position that nuclear capacity should expand significantly over the next two decades.`},
+    {id:'v-nuclear-against', kind:'view', parentId:'t-nuclear', title:'Reactor Expansion Should Be Paused', status:'approved', author:'curator', createdAt:now, tags:[],
+     content:`The position that new reactor construction should wait until cost and waste issues are resolved.`},
+    {id:'a-nuc-1', kind:'argument', parentId:'v-nuclear-for', relation:'supporting', title:'Nuclear has the smallest land and material footprint', status:'approved', author:'s.tanaka', createdAt:now, tags:['land-use'],
+     content:`A nuclear plant produces the same output as a solar farm using roughly 1/75th the land area, easing conflicts over land use near dense population centers. Related to [[More Reactors Should Be Built]].`},
+    {id:'a-nuc-2', kind:'argument', parentId:'v-nuclear-for', relation:'supporting', title:'Nuclear is the safest energy source per unit of power', status:'approved', author:'s.tanaka', createdAt:now, tags:['safety-record'],
+     content:`Comparing deaths per terawatt-hour across the full fuel cycle, nuclear ranks among the very safest sources, below wind and roughly tied with solar, even counting Chernobyl and Fukushima.`},
+    {id:'a-nuc-3', kind:'argument', parentId:'v-nuclear-against', relation:'supporting', title:'Reactors are too slow and expensive to build', status:'approved', author:'p.osei', createdAt:now, tags:['cost'],
+     content:`Recent Western reactor projects have run years behind schedule and billions over budget, while renewables can be deployed in a fraction of the time. Related to [[Reactor Expansion Should Be Paused]].`},
+    {id:'a-nuc-4', kind:'argument', parentId:'v-nuclear-against', relation:'supporting', title:'Long-lived waste remains unsolved', status:'approved', author:'p.osei', createdAt:now, tags:['waste'],
+     content:`No country has yet opened a permanent high-level waste repository at scale, leaving spent fuel in interim storage for decades.`},
+
+    {id:'t-social', kind:'topic', parentId:null, title:'Social Media Age Verification Laws', status:'approved', author:'curator', createdAt:now, tags:['tech-policy','minors'],
+     content:`Whether governments should require platforms to verify user age and restrict minors' access to social media. See [[Platforms Should Verify Age]] and [[Verification Mandates Should Be Rejected]].`},
+    {id:'v-social-for', kind:'view', parentId:'t-social', title:'Platforms Should Verify Age', status:'approved', author:'curator', createdAt:now, tags:[],
+     content:`The position that platforms should be legally required to verify user age.`},
+    {id:'v-social-against', kind:'view', parentId:'t-social', title:'Verification Mandates Should Be Rejected', status:'approved', author:'curator', createdAt:now, tags:[],
+     content:`The position that mandatory age verification does more harm than good.`},
+    {id:'a-soc-1', kind:'argument', parentId:'v-social-for', relation:'supporting', title:'Age verification protects developing minds', status:'approved', author:'r.hassan', createdAt:now, tags:['mental-health'],
+     content:`Multiple longitudinal studies associate heavy adolescent social media use with increased rates of anxiety and disrupted sleep, motivating age gates similar to those used for other regulated products.`},
+    {id:'a-soc-2', kind:'argument', parentId:'v-social-against', relation:'supporting', title:'Verification systems threaten privacy and free expression', status:'approved', author:'a.novak', createdAt:now, tags:['privacy'],
+     content:`Mandatory ID or biometric checks create honeypots of sensitive data and can chill anonymous speech for adults and minors alike.`}
+  ];
+  const submissions = [
+    {id:'s-1', type:'new', kind:'argument', parentId:'v-ubi-against', relation:'supporting', title:'UBI pilots are too short to predict long-run effects', status:'pending', author:'newcontributor22', createdAt:now, tags:['methodology'],
+     content:`Most UBI trials run 1-3 years and pay a small group, which may not capture how behavior changes once a policy is permanent and universal.`},
+    {id:'e-1', type:'edit', targetId:'a-ubi-4', status:'pending', author:'econwatcher', createdAt:now,
+     proposedTitle:'UBI may reduce work incentives at the margin',
+     proposedContent:`Guaranteeing income independent of work could shrink labor force participation at the margins, particularly for second earners and low-wage roles. A 2019 NBER review found modest but non-zero reductions in hours worked across five pilot programs.\n\nSee [[UBI Should Not Be Adopted]].`,
+     proposedTags:['labor-market','evidence']}
+  ];
+  return {notes, submissions};
+}
