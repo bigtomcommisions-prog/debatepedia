@@ -102,3 +102,22 @@ def reject(sid):
     s.review_note = str(data.get('note','')).strip() or None
     db.session.commit()
     return jsonify(ok=True)
+@api.delete('/notes/<note_id>')
+@admin_required
+def delete_note(note_id):
+    note = db.session.get(Note, note_id)
+
+    if not note:
+        return jsonify(error='Note not found.'), 404
+
+    # Don't allow deleting a note that has children.
+    children = Note.query.filter_by(parent_id=note.id).first()
+    if children:
+        return jsonify(
+            error='This note has child notes. Delete or move them first.'
+        ), 409
+
+    db.session.delete(note)
+    db.session.commit()
+
+    return jsonify(ok=True)
