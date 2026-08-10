@@ -741,42 +741,29 @@ function renderNode(note) {
     let icon = '';
 
     if (note.kind === 'topic') {
-        icon = 'Topic';
+        icon = '<span class="node-icon node-icon-topic">▰</span>';
     } else if (note.kind === 'view') {
-        icon = 'View';
+        icon = '<span class="node-icon node-icon-view">◐</span>';
     } else if (note.kind === 'summary') {
-        icon = 'Summary';
+        icon = '<span class="node-icon node-icon-summary">▤</span>';
     }
 
-    const dot =
-        note.kind === 'argument'
-            ? `<span class="dot ${
-                note.relation === 'refutation'
-                    ? 'con'
-                    : 'pro'
-            }"></span>`
-            : '';
+    const dot = note.kind === 'argument'
+        ? `<span class="dot ${note.relation === 'refutation' ? 'con' : 'pro'}"></span>`
+        : '';
 
     const row = `
         <div
-            class="tree-row
-                ${isOpen ? 'open' : ''}
-                ${activeNoteId === note.id ? 'active' : ''}"
-            data-note="${escapeHtml(note.id)}"
+            class="tree-row ${isOpen ? 'open' : ''} ${activeNoteId === note.id ? 'active' : ''}"
+            data-note="${note.id}"
         >
             <span
                 class="chev"
-                data-toggle="${escapeHtml(note.id)}"
+                data-toggle="${note.id}"
                 style="visibility:${hasKids ? 'visible' : 'hidden'}"
-            >
-                ${hasKids ? (isOpen ? '▼' : '▶') : ''}
-            </span>
+            >▶</span>
 
-            ${
-                icon
-                    ? `<span class="tree-kind">${icon}</span>`
-                    : dot
-            }
+            ${icon || dot}
 
             <span>${escapeHtml(note.title)}</span>
         </div>
@@ -788,17 +775,12 @@ function renderNode(note) {
                 class="tree-children"
                 style="display:${isOpen ? 'block' : 'none'}"
             >
-                ${kids.map(renderNode).join('')}
+                ${kids.map(k => renderNode(k)).join('')}
             </div>
         `
         : '';
 
-    return `
-        <div>
-            ${row}
-            ${childrenHtml}
-        </div>
-    `;
+    return `<div>${row}${childrenHtml}</div>`;
 }
 
 function renderSidebar() {
