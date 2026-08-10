@@ -19,8 +19,8 @@ function renderAccountControls(){
 }
 
 function showAuth(mode){
-const login=mode==='login';
-document.body.insertAdjacentHTML('beforeend',`<div class="auth-overlay" id="authOverlay"><div class="auth-card"><button class="auth-close" id="authClose">×</button><h2>${login?'Log in':'Create account'}</h2>${login?'':'<p class="auth-hint">Create an account to submit contributions.</p>'}<input id="auth-identifier" placeholder="Username">${login?'':'<input id="auth-email" type="email" placeholder="(optional)">'}<input id="auth-password" type="password" placeholder="Password"><div id="authError" class="auth-error"></div><button class="btn btn-primary" id="authSubmit">${login?'Log in':'Create account'}</button><button class="auth-switch" id="authSwitch">${login?'Need an account? Create one':'Already have an account? Log in'}</button></div></div>`);
+  const login=mode==='login';
+  document.body.insertAdjacentHTML('beforeend',`<div class="auth-overlay" id="authOverlay"><div class="auth-card"><button class="auth-close" id="authClose">×</button><h2>${login?'Log in':'Create account'}</h2>${login?'':'<p class="auth-hint">Create an account to submit contributions.</p>'}<input id="auth-identifier" placeholder="${login?'Username or email':'Username'}">${login?'':'<input id="auth-email" type="email" placeholder="Email (Optional)">'}<input id="auth-password" type="password" placeholder="Password"><div id="authError" class="auth-error"></div><button class="btn btn-primary" id="authSubmit">${login?'Log in':'Create account'}</button><button class="auth-switch" id="authSwitch">${login?'Need an account? Create one':'Already have an account? Log in'}</button></div></div>`);
   document.getElementById('authClose').onclick=()=>document.getElementById('authOverlay').remove();
   document.getElementById('authSwitch').onclick=()=>{document.getElementById('authOverlay').remove();showAuth(login?'register':'login');};
   document.getElementById('authSubmit').onclick=async()=>{
@@ -29,4 +29,3 @@ document.body.insertAdjacentHTML('beforeend',`<div class="auth-overlay" id="auth
     catch(e){document.getElementById('authError').textContent=e.message;}
   };
 }
-
