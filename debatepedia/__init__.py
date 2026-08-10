@@ -4,7 +4,7 @@ from .extensions import db, login_manager
 from .models import User
 from .routes import main, auth, api
 from .services.seed import seed_database
-from .config import Config
+from config import Config
 
 
 def create_app(config_class=Config):
