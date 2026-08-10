@@ -29,3 +29,4 @@ function showAuth(mode){
     catch(e){document.getElementById('authError').textContent=e.message;}
   };
 }
+
