@@ -54,20 +54,36 @@ function kindColor(n){
   return n.relation==='refutation' ? '#7a86f5' : '#e2703a';
 }
 
-/* ---------------- wikilink parsing ---------------- */
-function parseWikilinksHTML(escapedText){
-  return escapedText.replace(/\[\[([^\]]+)\]\]/g, (m, title)=>{
-    const target = noteByTitle(title);
-    if(target) return `<span class="wikilink" data-nav="${target.id}">${title}</span>`;
-    return `<span class="wikilink missing">${title}</span>`;
-  });
+/* ---------------- markdown + wikilinks ---------------- */
+
+function parseWikilinksHTML(html) {
+    return html.replace(/\[\[([^\]]+)\]\]/g, (match, title) => {
+        const target = noteByTitle(title);
+
+        if (target) {
+            return `<span class="wikilink" data-nav="${target.id}">${escapeHtml(title)}</span>`;
+        }
+
+        return `<span class="wikilink missing">${escapeHtml(title)}</span>`;
+    });
 }
-function renderContentHTML(text){
-  const escaped = escapeHtml(text);
-  return escaped.split(/\n\n+/).map(p=>`<p>${parseWikilinksHTML(p.replace(/\n/g,'<br>'))}</p>`).join('');
-}
-function findBacklinks(note){
-  return allApproved().filter(n=> n.id!==note.id && new RegExp('\\[\\['+note.title.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\]\\]','i').test(n.content));
+
+function renderContentHTML(text) {
+    if (!text) return '';
+
+    // Convert Markdown to HTML
+    const markdownHtml = marked.parse(String(text), {
+        breaks: true,
+        gfm: true
+    });
+
+    // Convert [[Note Name]] links
+    const withWikilinks = parseWikilinksHTML(markdownHtml);
+
+    // Sanitize generated HTML
+    return DOMPurify.sanitize(withWikilinks, {
+        ADD_ATTR: ['data-nav']
+    });
 }
 
 /* ---------------- FOL validity checker ---------------- */
