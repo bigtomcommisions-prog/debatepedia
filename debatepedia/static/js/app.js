@@ -54,46 +54,20 @@ function kindColor(n){
   return n.relation==='refutation' ? '#7a86f5' : '#e2703a';
 }
 
-/* ---------------- markdown + wikilink parsing ---------------- */
-
-function parseWikilinksHTML(html){
-  return html.replace(/\[\[([^\]]+)\]\]/g, (m, title)=>{
+/* ---------------- wikilink parsing ---------------- */
+function parseWikilinksHTML(escapedText){
+  return escapedText.replace(/\[\[([^\]]+)\]\]/g, (m, title)=>{
     const target = noteByTitle(title);
-
-    if(target){
-      return `<span class="wikilink" data-nav="${target.id}">${escapeHtml(title)}</span>`;
-    }
-
-    return `<span class="wikilink missing">${escapeHtml(title)}</span>`;
+    if(target) return `<span class="wikilink" data-nav="${target.id}">${title}</span>`;
+    return `<span class="wikilink missing">${title}</span>`;
   });
 }
-
 function renderContentHTML(text){
-  if(!text) return '';
-
-  /*
-   * Convert Markdown into HTML.
-   *
-   * marked is loaded in base.html.
-   */
-  const markdownHtml = marked.parse(String(text), {
-    breaks: true,
-    gfm: true
-  });
-
-  /*
-   * Convert [[Note Name]] links into Debatepedia
-   * internal links.
-   */
-  const withWikilinks = parseWikilinksHTML(markdownHtml);
-
-  /*
-   * Sanitize the generated HTML so Markdown cannot
-   * be used to inject arbitrary JavaScript.
-   */
-  return DOMPurify.sanitize(withWikilinks, {
-    ADD_ATTR: ['data-nav']
-  });
+  const escaped = escapeHtml(text);
+  return escaped.split(/\n\n+/).map(p=>`<p>${parseWikilinksHTML(p.replace(/\n/g,'<br>'))}</p>`).join('');
+}
+function findBacklinks(note){
+  return allApproved().filter(n=> n.id!==note.id && new RegExp('\\[\\['+note.title.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\]\\]','i').test(n.content));
 }
 
 /* ---------------- FOL validity checker ---------------- */
@@ -277,7 +251,6 @@ function renderReader(){
   const crumb = ancestorPath(note);
   main.innerHTML = `<div class="reader">
     <div class="reader-actions"><button class="btn-edit" id="suggestEditBtn">Suggest an edit</button></div>
-    
     <div class="eyebrow">${crumb? escapeHtml(crumb): 'Root'} ${chipHTML(note.kind, note.relation)}</div>
     <h1>${escapeHtml(note.title)}</h1>
     <div class="meta">by ${escapeHtml(note.author)} · ${new Date(note.createdAt).toLocaleDateString()}${note.editedAt? ` · edited ${new Date(note.editedAt).toLocaleDateString()}`:''}</div>
