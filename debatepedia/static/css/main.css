@@ -73,6 +73,14 @@ html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--text);
 .reader-actions{display:flex;justify-content:flex-end;margin-bottom:6px;}
 .btn-edit{font-family:var(--font-mono);font-size:11px;padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;}
 .btn-edit:hover{color:var(--text);border-color:#3d4354;}
+.btn-delete {
+  background: transparent;
+  border: 1px solid #a94442;
+  color: #e06c67;
+}
+.btn-delete:hover {
+  background: rgba(169, 68, 66, 0.12);
+}
 .reader .eyebrow{font-family:var(--font-mono);font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-faint);display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
 .stance-chip{padding:2px 8px;border-radius:20px;font-size:10px;}
 .stance-chip.pro{background:var(--pro-dim);color:var(--pro);}
