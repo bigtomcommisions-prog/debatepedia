@@ -276,6 +276,28 @@ function renderReader(){
   document.getElementById('suggestEditBtn').addEventListener('click', ()=>{
     submitMode='edit'; editTargetId=note.id; view='community'; render();
   });
+  if (currentUser && currentUser.isAdmin) {
+  document.getElementById('deleteNoteBtn').addEventListener('click', async () => {
+      const confirmed = confirm(
+        `Are you sure you want to permanently delete "${note.title}"?`
+      );
+  
+      if (!confirmed) return;
+  
+      try {
+        await apiJson(`/api/notes/${encodeURIComponent(note.id)}`, {
+          method: 'DELETE'
+        });
+  
+        activeNoteId = note.parentId || null;
+  
+        await loadVault();
+        render();
+      } catch (e) {
+        alert(e.message);
+      }
+    });
+  }
 }
 
 /* ---------------- graph view ---------------- */
