@@ -17,7 +17,6 @@ def me():
 def register():
     data = request.get_json() or {}
     username = str(data.get('username','')).strip()
-    email = str(data.get('email','')).strip().lower()
     password = str(data.get('password',''))
     if len(username) < 3 or len(username) > 80:
         return jsonify(error='Username must be 3–80 characters.'), 400
@@ -25,7 +24,7 @@ def register():
         return jsonify(error='Password must be at least 8 characters.'), 400
     if User.query.filter(User.username.ilike(username)).first():
         return jsonify(error='That username or email is already registered.'), 409
-    user = User(username=username, email=email, role='user')
+    user = User(username=username, email="", role='user')
     user.set_password(password)
     db.session.add(user); db.session.commit()
     login_user(user)
