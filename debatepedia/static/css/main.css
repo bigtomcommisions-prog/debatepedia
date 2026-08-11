@@ -20,6 +20,21 @@
   --font-body:'Inter', sans-serif;
   --font-mono:'IBM Plex Mono', monospace;
 }
+a {
+  color: var(--topic);          /* Unvisited links */
+}
+
+a:visited {
+  color: var(--topic);       /* Visited links */
+}
+
+a:hover {
+  color: var(--topic-dim);           /* Mouse over */
+}
+
+a:active {
+  color: var(--topic);        /* While clicking */
+}
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--font-body);}
 ::selection{background:var(--topic-dim);}
