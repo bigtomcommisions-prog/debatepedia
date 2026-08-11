@@ -724,7 +724,9 @@ function renderTabs() {
                 data-tab="${key}"
             >
                 ${labels[key]}
-                ${key !== 'vault' ? ` ${counts[key]}` : ''}
+                ${key !== 'vault' && key !== 'approved'
+                    ? ` <span class="count">${counts[key]}</span>`
+                    : ''}
             </div>
         `)
         .join('');
@@ -1295,32 +1297,31 @@ function renderGraph() {
             <div class="graph-header">
 
                 <div class="graph-legend">
-                    <span>
+                    <span class="li">
                         <i class="legend-dot topic"></i>
                         Topic
                     </span>
 
-                    <span>
+                    <span class="li">
                         <i class="legend-dot view"></i>
                         View
                     </span>
 
-                    <span>
+                    <span class="li">
                         <i class="legend-dot summary"></i>
                         Summary
                     </span>
 
-                    <span>
+                    <span class="li">
                         <i class="legend-dot supporting"></i>
                         Supporting
                     </span>
 
-                    <span>
+                    <span class="li">
                         <i class="legend-dot refutation"></i>
                         Refutation
                     </span>
                 </div>
-
             </div>
 
             <div class="graph-container">
