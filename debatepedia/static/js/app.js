@@ -5,6 +5,7 @@ let openFolders = new Set();
 let submitMode = 'new';
 let editTargetId = null;
 let graphState = null;
+let sidebarQuery = '';
 
 
 /* ---------------- utils ---------------- */
@@ -103,8 +104,8 @@ function sortChildren(kids) {
     });
 }
 
-function ancestorPath(note) {
-    if (!note) return '';
+function ancestorChain(note) {
+    if (!note) return [];
 
     const chain = [];
     let current = note.parentId
@@ -112,14 +113,20 @@ function ancestorPath(note) {
         : null;
 
     while (current) {
-        chain.unshift(current.title);
+        chain.unshift(current);
 
         current = current.parentId
             ? noteById(current.parentId)
             : null;
     }
 
-    return chain.join(' › ');
+    return chain;
+}
+
+function ancestorPath(note) {
+    return ancestorChain(note)
+        .map(n => n.title)
+        .join(' › ');
 }
 
 function fullPath(note) {
@@ -731,6 +738,35 @@ function renderTabs() {
 }
 
 
+/* ---------------- mobile sidebar ---------------- */
+
+function openMobileSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+
+    if (sidebar) sidebar.classList.add('mobile-open');
+    if (backdrop) backdrop.classList.add('mobile-open');
+}
+
+function closeMobileSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+
+    if (sidebar) sidebar.classList.remove('mobile-open');
+    if (backdrop) backdrop.classList.remove('mobile-open');
+}
+
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById('sidebar');
+
+    if (sidebar && sidebar.classList.contains('mobile-open')) {
+        closeMobileSidebar();
+    } else {
+        openMobileSidebar();
+    }
+}
+
+
 /* ---------------- sidebar ---------------- */
 
 function renderNode(note) {
@@ -783,6 +819,49 @@ function renderNode(note) {
     return `<div>${row}${childrenHtml}</div>`;
 }
 
+function renderSearchResults() {
+    const q = sidebarQuery.trim().toLowerCase();
+
+    if (!q) {
+        return '';
+    }
+
+    const matches = allApproved()
+        .filter(n => n.title.toLowerCase().includes(q))
+        .slice(0, 30);
+
+    if (!matches.length) {
+        return `
+            <div class="sidebar-search-results">
+                <div class="sidebar-search-empty">
+                    No notes match “${escapeHtml(sidebarQuery.trim())}”.
+                </div>
+            </div>
+        `;
+    }
+
+    return `
+        <div class="sidebar-search-results">
+            ${matches
+                .map(note => {
+                    const crumb = ancestorPath(note);
+
+                    return `
+                        <div
+                            class="tree-row ${activeNoteId === note.id ? 'active' : ''}"
+                            data-note="${note.id}"
+                        >
+                            <span class="chev" style="visibility:hidden">▶</span>
+                            <span>${escapeHtml(note.title)}</span>
+                            ${crumb ? `<span class="sidebar-search-crumb">${escapeHtml(crumb)}</span>` : ''}
+                        </div>
+                    `;
+                })
+                .join('')}
+        </div>
+    `;
+}
+
 function renderSidebar() {
     const sidebar = document.getElementById('sidebar');
 
@@ -796,10 +875,43 @@ function renderSidebar() {
         )
     );
 
+    const searching = sidebarQuery.trim().length > 0;
+
     sidebar.innerHTML = `
-        <h4>Vault · ${allApproved().length} notes</h4>
-        ${roots.map(renderNode).join('')}
+        <div class="sidebar-search">
+            <input
+                type="search"
+                id="sidebarSearchInput"
+                placeholder="Search notes…"
+                value="${escapeHtml(sidebarQuery)}"
+            >
+        </div>
+
+        ${
+            searching
+                ? renderSearchResults()
+                : `
+                    <h4>Vault · ${allApproved().length} notes</h4>
+                    ${roots.map(renderNode).join('')}
+                `
+        }
     `;
+
+    const searchInput = document.getElementById('sidebarSearchInput');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            sidebarQuery = searchInput.value;
+            renderSidebar();
+        });
+
+        // Keep focus + caret position when re-rendering while typing.
+        if (searching) {
+            searchInput.focus();
+            const pos = searchInput.value.length;
+            searchInput.setSelectionRange(pos, pos);
+        }
+    }
 
     sidebar.querySelectorAll('.chev').forEach(element => {
         element.addEventListener('click', event => {
@@ -817,10 +929,18 @@ function renderSidebar() {
         });
     });
 
-    sidebar.querySelectorAll('.tree-row').forEach(element => {
+    sidebar.querySelectorAll('.tree-row[data-note]').forEach(element => {
         element.addEventListener('click', () => {
-            activeNoteId = element.dataset.note;
+            const id = element.dataset.note;
+            activeNoteId = id;
             view = 'vault';
+
+            const target = noteById(id);
+            if (target) {
+                expandToNote(target);
+            }
+
+            closeMobileSidebar();
             render();
         });
     });
@@ -865,25 +985,67 @@ function renderReader() {
     }
 
     const backlinks = findBacklinks(note);
-    const crumb = ancestorPath(note);
+    const crumbChain = ancestorChain(note);
+    const parentNote = note.parentId ? noteById(note.parentId) : null;
 
     main.innerHTML = `
         <div class="reader">
 
             <div class="reader-actions">
+                ${
+                    parentNote
+                        ? `
+                            <button
+                                class="btn-edit"
+                                id="goToParentBtn"
+                                data-nav="${escapeHtml(parentNote.id)}"
+                            >
+                                ↑ Go to parent
+                            </button>
+                        `
+                        : ''
+                }
+
                 <button
                     class="btn-edit"
                     id="suggestEditBtn"
                 >
                     Suggest an edit
                 </button>
+
+                ${
+                    currentUser && currentUser.isAdmin
+                        ? `
+                            <button
+                                class="btn-edit btn-delete"
+                                id="deleteNoteBtn"
+                            >
+                                Delete
+                            </button>
+                        `
+                        : ''
+                }
             </div>
 
-            <div class="eyebrow">
-                ${crumb
-                    ? escapeHtml(crumb)
-                    : 'Root'}
+            <nav class="breadcrumb-trail" aria-label="Note location">
+                ${crumbChain
+                    .map(
+                        ancestor => `
+                            <span
+                                class="breadcrumb-item"
+                                data-nav="${escapeHtml(ancestor.id)}"
+                                title="${escapeHtml(ancestor.title)}"
+                            >${escapeHtml(ancestor.title)}</span>
+                            <span class="breadcrumb-sep">›</span>
+                        `
+                    )
+                    .join('')}
+                <span class="breadcrumb-item breadcrumb-current">
+                    ${escapeHtml(note.title)}
+                </span>
+            </nav>
 
+            <div class="eyebrow">
                 ${chipHTML(
                     note.kind,
                     note.relation
@@ -977,6 +1139,7 @@ function renderReader() {
                     expandToNote(target);
                 }
 
+                closeMobileSidebar();
                 render();
             });
         });
@@ -996,6 +1159,48 @@ function renderReader() {
             view = 'community';
 
             render();
+        });
+    }
+
+    const deleteButton =
+        document.getElementById('deleteNoteBtn');
+
+    if (deleteButton) {
+        deleteButton.addEventListener('click', async () => {
+            const confirmed = confirm(
+                `Delete "${note.title}"? This cannot be undone.`
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            deleteButton.disabled = true;
+
+            try {
+                await apiJson(
+                    `/api/notes/${note.id}`,
+                    { method: 'DELETE' }
+                );
+
+                const parentId = note.parentId;
+
+                activeNoteId = parentId && noteById(parentId)
+                    ? parentId
+                    : null;
+
+                await loadVault();
+                render();
+            } catch (error) {
+                console.error(error);
+
+                alert(
+                    error.message ||
+                    'Unable to delete this note.'
+                );
+
+                deleteButton.disabled = false;
+            }
         });
     }
 }
@@ -2796,6 +3001,23 @@ function render() {
 (async function init() {
     const main =
         document.getElementById('main');
+
+    const menuToggle = document.getElementById('menuToggle');
+    const backdrop = document.getElementById('sidebarBackdrop');
+
+    if (menuToggle) {
+        menuToggle.addEventListener('click', toggleMobileSidebar);
+    }
+
+    if (backdrop) {
+        backdrop.addEventListener('click', closeMobileSidebar);
+    }
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 760) {
+            closeMobileSidebar();
+        }
+    });
 
     if (main) {
         main.innerHTML =
