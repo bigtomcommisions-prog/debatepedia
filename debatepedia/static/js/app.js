@@ -706,7 +706,7 @@ function renderTabs() {
 
     const labels = {
         vault: 'Vault',
-        graph: '',
+        graph: 'Graph View',
         community: 'Community',
         approved: 'Approved'
     };
@@ -1293,7 +1293,6 @@ function renderGraph() {
         <div class="graph-view">
 
             <div class="graph-header">
-                <h1>Graph View</h1>
 
                 <div class="graph-legend">
                     <span>
