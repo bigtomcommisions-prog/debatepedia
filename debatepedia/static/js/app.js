@@ -706,7 +706,7 @@ function renderTabs() {
 
     const labels = {
         vault: 'Vault',
-        graph: 'Graph View',
+        graph: '',
         community: 'Community',
         approved: 'Approved'
     };
@@ -1322,10 +1322,6 @@ function renderGraph() {
                     </span>
                 </div>
 
-                <p class="graph-help">
-                    Drag nodes to move them.
-                    Click a node to open it.
-                </p>
             </div>
 
             <div class="graph-container">
