@@ -5,6 +5,7 @@ from flask import Blueprint, jsonify, request
 from flask_login import current_user, login_required
 from ..extensions import db
 from ..models import Note, Submission
+from ..services.csv_import import import_notes_from_stream
 
 api = Blueprint('api', __name__, url_prefix='/api')
 
@@ -121,3 +122,19 @@ def delete_note(note_id):
     db.session.commit()
 
     return jsonify(ok=True)
+
+@api.post('/notes/import')
+@admin_required
+def import_notes():
+    file = request.files.get('file')
+    if not file or not file.filename:
+        return jsonify(error='Attach a CSV file under the "file" field.'), 400
+    if not file.filename.lower().endswith('.csv'):
+        return jsonify(error='Only .csv files are accepted.'), 400
+
+    try:
+        summary = import_notes_from_stream(file.stream)
+    except Exception as e:  # noqa: BLE001
+        return jsonify(error=f'Could not read CSV: {e}'), 400
+
+    return jsonify(summary), 200

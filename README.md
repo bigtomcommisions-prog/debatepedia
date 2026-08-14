@@ -55,6 +55,46 @@ ADMIN_PASSWORD=use-a-strong-password
 
 The first startup creates that account as an administrator. After that, changing the environment variables will not replace an existing admin.
 
+## Importing notes from CSV
+
+There are two ways to bulk-import notes, both backed by the same import logic
+in `debatepedia/services/csv_import.py`. The CSV needs these column headers
+(matching the `Note` model): `id, kind, parent_id, relation, title, content,
+status, author, author_id, created_at, edited_at, tags_json, premises_json,
+conclusion, manual_valid, manual_note`. Only `id`, `kind`, `title`, and
+`content` are required — everything else falls back to a default. Rows are
+upserted, so re-importing a file with the same ids updates those notes rather
+than duplicating them.
+
+### Option A — drop a file in a folder (local only)
+
+Run the watcher alongside the app on your own machine:
+
+```bash
+python scripts/watch_imports.py
+```
+
+Any `.csv` file dropped into `data/imports/` is imported automatically within
+a couple of seconds, then moved to `data/imports/processed/` (or
+`data/imports/failed/` with an `.error.txt` if it couldn't be read at all;
+row-level problems are logged to a `.errors.txt` next to the processed file
+instead of blocking the rest of the import).
+
+Note: this only works while the watcher script is running. It will **not**
+run automatically once deployed to Vercel, since serverless functions don't
+stay alive to watch a folder — use Option B there instead.
+
+### Option B — admin upload endpoint (works locally and on Vercel)
+
+```bash
+curl -X POST https://your-deployment/api/notes/import \
+  -H "Cookie: <your admin session cookie>" \
+  -F "file=@notes.csv"
+```
+
+Requires being logged in as an admin. Returns a JSON summary:
+`{"inserted": N, "updated": N, "errors": [...]}`.
+
 ## Production
 
 GitHub Pages cannot run this Flask application. Keep the repository on GitHub and deploy the Flask app to a Python-capable host. For multi-user production use, set `DATABASE_URL` to PostgreSQL rather than relying on SQLite.
