@@ -260,6 +260,17 @@ textarea{width:100%;min-height:100px;resize:vertical;font-family:var(--font-body
 .account-name{font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim)}
 .account-btn{font-family:var(--font-body);font-size:12px;padding:7px 11px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer}
 .account-btn:hover{color:var(--text);border-color:#3d4354}
+.account-menu-wrap{position:relative;}
+.account-menu-toggle{display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:10.5px;color:var(--text-dim);background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 10px;cursor:pointer;}
+.account-menu-toggle:hover{color:var(--text);border-color:#3d4354;}
+.account-menu-toggle .chev{font-size:9px;color:var(--text-faint);}
+.account-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:170px;background:var(--panel);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 30px rgba(0,0,0,.35);overflow:hidden;z-index:900;}
+.account-menu-item{display:block;width:100%;box-sizing:border-box;text-align:left;padding:9px 13px;font-family:var(--font-body);font-size:12.5px;color:var(--text-dim);background:transparent;border:0;cursor:pointer;}
+.account-menu-item:hover{background:var(--panel-2);color:var(--text);}
+.account-menu-item.danger{color:#e06c67;}
+.account-menu-item.danger:hover{background:rgba(169,68,66,.12);color:#e88b86;}
+.account-menu-divider{height:1px;background:var(--border);margin:4px 0;}
+.delete-account-hint{color:var(--text-dim);font-size:13px;line-height:1.5;}
 .primary-account{color:var(--pro);border-color:var(--pro);background:var(--pro-dim)}
 .auth-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
 .auth-card{position:relative;width:min(410px,100%);background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:26px;box-shadow:0 25px 70px rgba(0,0,0,.35)}

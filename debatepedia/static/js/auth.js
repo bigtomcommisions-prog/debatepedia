@@ -1,4 +1,5 @@
 let currentUser = null;
+let accountMenuOpen = false;
 
 async function loadCurrentUser(){
   const data = await apiJson('/api/auth/me');
@@ -6,16 +7,96 @@ async function loadCurrentUser(){
   renderAccountControls();
 }
 
+function closeAccountMenu(){
+  accountMenuOpen = false;
+  const menu = document.getElementById('accountMenu');
+  if (menu) menu.remove();
+  document.removeEventListener('click', onAccountMenuOutsideClick);
+}
+
+function onAccountMenuOutsideClick(e){
+  const wrap = document.getElementById('accountMenuWrap');
+  if (wrap && !wrap.contains(e.target)) closeAccountMenu();
+}
+
+function toggleAccountMenu(){
+  if (accountMenuOpen) { closeAccountMenu(); return; }
+  accountMenuOpen = true;
+  const wrap = document.getElementById('accountMenuWrap');
+  if (!wrap) return;
+  wrap.insertAdjacentHTML('beforeend', `
+    <div class="account-menu" id="accountMenu">
+      <button class="account-menu-item" id="logoutBtn">Log out</button>
+      <div class="account-menu-divider"></div>
+      <button class="account-menu-item danger" id="deleteAccountBtn">Delete account</button>
+    </div>
+  `);
+  document.getElementById('logoutBtn').onclick = async () => {
+    closeAccountMenu();
+    await apiJson('/api/auth/logout', {method:'POST'});
+    currentUser = null;
+    await loadVault();
+    renderAccountControls();
+    render();
+  };
+  document.getElementById('deleteAccountBtn').onclick = () => {
+    closeAccountMenu();
+    showDeleteAccount();
+  };
+  setTimeout(() => document.addEventListener('click', onAccountMenuOutsideClick), 0);
+}
+
 function renderAccountControls(){
   const el=document.getElementById('account'); if(!el)return;
+  closeAccountMenu();
   if(currentUser){
-    el.innerHTML=`<span class="account-name">${escapeHtml(currentUser.username)}${currentUser.isAdmin?' · admin':''}</span><button class="account-btn" id="logoutBtn">Log out</button>`;
-    document.getElementById('logoutBtn').onclick=async()=>{await apiJson('/api/auth/logout',{method:'POST'});currentUser=null;await loadVault();renderAccountControls();render();};
+    el.innerHTML=`
+      <div class="account-menu-wrap" id="accountMenuWrap">
+        <button class="account-menu-toggle" id="accountMenuToggle">
+          <span class="account-name">${escapeHtml(currentUser.username)}${currentUser.isAdmin?' · admin':''}</span>
+          <span class="chev">▾</span>
+        </button>
+      </div>
+    `;
+    document.getElementById('accountMenuToggle').onclick = (e) => { e.stopPropagation(); toggleAccountMenu(); };
   } else {
     el.innerHTML=`<button class="account-btn" id="loginBtn">Log in</button><button class="account-btn primary-account" id="registerBtn">Create account</button>`;
     document.getElementById('loginBtn').onclick=()=>showAuth('login');
     document.getElementById('registerBtn').onclick=()=>showAuth('register');
   }
+}
+
+function showDeleteAccount(){
+  document.body.insertAdjacentHTML('beforeend',`
+    <div class="auth-overlay" id="deleteOverlay">
+      <div class="auth-card">
+        <button class="auth-close" id="deleteClose">×</button>
+        <h2>Delete account</h2>
+        <p class="delete-account-hint">
+          This permanently deletes your account and log-in access. Notes you've
+          published stay on the site (just no longer linked to your account);
+          any pending submissions of yours are removed. This can't be undone.
+        </p>
+        <input id="delete-password" type="password" placeholder="Confirm your password">
+        <div id="deleteError" class="auth-error"></div>
+        <button class="btn btn-delete" id="deleteSubmit">Delete my account</button>
+      </div>
+    </div>
+  `);
+  document.getElementById('deleteClose').onclick=()=>document.getElementById('deleteOverlay').remove();
+  document.getElementById('deleteSubmit').onclick=async()=>{
+    const password = document.getElementById('delete-password').value;
+    try{
+      await apiJson('/api/auth/account/delete',{method:'POST',body:JSON.stringify({password})});
+      document.getElementById('deleteOverlay').remove();
+      currentUser=null;
+      await loadVault();
+      renderAccountControls();
+      render();
+    } catch(e){
+      document.getElementById('deleteError').textContent=e.message;
+    }
+  };
 }
 
 function showAuth(mode){

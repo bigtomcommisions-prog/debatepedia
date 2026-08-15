@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, request
-from flask_login import current_user, login_user, logout_user
+from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy import or_
 from ..extensions import db
-from ..models import User
+from ..models import User, Note, Submission
 
 auth = Blueprint('auth', __name__, url_prefix='/api/auth')
 
@@ -47,4 +47,32 @@ def login():
 @auth.post('/logout')
 def logout():
     logout_user()
+    return jsonify(ok=True)
+
+@auth.post('/account/delete')
+@login_required
+def delete_account():
+    data = request.get_json() or {}
+    password = str(data.get('password', ''))
+
+    if not current_user.check_password(password):
+        return jsonify(error='Incorrect password.'), 401
+
+    if current_user.is_admin and User.query.filter_by(role='admin').count() <= 1:
+        return jsonify(error="You're the only admin — promote another account to admin before deleting this one."), 400
+
+    user_id = current_user.id
+
+    # Keep published content, just detach it from the deleted account.
+    Note.query.filter_by(author_id=user_id).update({'author_id': None})
+    # Submissions are the review queue, not published content, so they're
+    # removed outright rather than left orphaned (author_id is required there).
+    Submission.query.filter_by(author_id=user_id).delete()
+    Submission.query.filter_by(reviewer_id=user_id).update({'reviewer_id': None})
+
+    user = db.session.get(User, user_id)
+    logout_user()
+    db.session.delete(user)
+    db.session.commit()
+
     return jsonify(ok=True)
