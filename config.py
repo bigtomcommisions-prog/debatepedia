@@ -14,7 +14,7 @@ class Config:
             "postgres://",
             "postgresql://",
             1
-        )
+        )   
     else:
         SQLALCHEMY_DATABASE_URI = "sqlite:///debatepedia.db"
 

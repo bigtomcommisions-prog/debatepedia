@@ -1,3 +1,8 @@
+// Set this to a note's id (e.g. 'n-abc1234') to make that note the default
+// one shown when someone opens the site. Leave as null to fall back to the
+// first top-level topic instead.
+const HOME_NOTE_ID = "n-02xsjul6wg";
+
 let vault = null;
 let view = 'vault';
 let activeNoteId = null;
@@ -959,7 +964,12 @@ function renderReader() {
     }
 
     if (!activeNoteId) {
+        const home =
+            HOME_NOTE_ID &&
+            allApproved().find(n => n.id === HOME_NOTE_ID);
+
         const first =
+            home ||
             allApproved().find(n => !n.parentId) ||
             allApproved()[0];
 
